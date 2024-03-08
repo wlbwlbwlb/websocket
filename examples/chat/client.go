@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -70,7 +71,10 @@ func (c *Client) readPump() {
 			break
 		}
 		//message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+		//c.hub.broadcast <- message
+		if err = handle(message, c); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
