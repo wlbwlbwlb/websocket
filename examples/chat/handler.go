@@ -17,6 +17,9 @@ var handlers = make(map[string]HandlerFunc)
 
 func handle(msg []byte, c *Client) (e error) {
 	var req Msg
+	if e = json.Unmarshal(msg, &req); e != nil {
+		return
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -25,17 +28,13 @@ func handle(msg []byte, c *Client) (e error) {
 		}
 	}()
 
-	if e = json.Unmarshal(msg, &req); e != nil {
-		return
+	f, ok := handlers[req.Cmd]
+	if !ok {
+		return fmt.Errorf("handler not found, req=%+v", req)
 	}
+	e = f(req.Payload, c)
 
-	if f, ok := handlers[req.Cmd]; ok {
-		if e = f(req.Payload, c); e != nil {
-			return
-		}
-	}
-
-	return fmt.Errorf("handler not found, req=%+v", req)
+	return
 }
 
 func init() {
