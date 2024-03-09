@@ -21,7 +21,7 @@ func handle(msg []byte, c *Client) (e error) {
 	defer func() {
 		if r := recover(); r != nil {
 			//log.Error
-			fmt.Println(r, debug.Stack(), req)
+			fmt.Println(r, string(debug.Stack()), req)
 		}
 	}()
 
@@ -45,6 +45,7 @@ func init() {
 		}{
 			Cmd: "pong",
 		}
+		//panic("aaa")
 		resp, _ := json.Marshal(a)
 		c.send <- resp
 		return
