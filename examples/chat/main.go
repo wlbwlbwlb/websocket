@@ -49,7 +49,7 @@ func main() {
 	}
 	go func() {
 		err := server.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed { //WARN todo
+		if err != nil && err != http.ErrServerClosed { // IMPORTANT
 			log.Fatal("ListenAndServe: ", err)
 		}
 	}()
