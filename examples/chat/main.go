@@ -69,17 +69,8 @@ func main() {
 		log.Fatal("Server forced to shutdown: ", err)
 	}
 
-	hub.shutdown()
-
-	//i := 0
-	//ticker := time.NewTicker(time.Second)
-	//for {
-	//	select {
-	//	case <-ticker.C:
-	//		i++
-	//		fmt.Println(i)
-	//	}
-	//}
+	//这种停服方式会有问题 todo
+	//hub.shutdown()
 
 	log.Println("Server exiting")
 }

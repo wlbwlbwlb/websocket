@@ -4,8 +4,6 @@
 
 package main
 
-import "fmt"
-
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
@@ -20,10 +18,13 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *Client
+
+	exit chan error
 }
 
 func newHub() *Hub {
 	return &Hub{
+		exit:       make(chan error),
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
@@ -31,28 +32,20 @@ func newHub() *Hub {
 	}
 }
 
-func (h *Hub) shutdown() {
-	fmt.Println(len(h.clients))
-	for client, _ := range h.clients {
-		h.unregister <- client
-	}
+func (h *Hub) shutdown(reason error) (e error) {
+	h.exit <- reason
+	return
 }
 
 func (h *Hub) run() {
-	i := 0
-	j := 0
 	for {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
-			i++
-			fmt.Printf("===>%d\n", i)
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
-				j++
-				fmt.Printf("<===%d\n", j)
 			}
 		case message := <-h.broadcast:
 			for client := range h.clients {
@@ -61,9 +54,14 @@ func (h *Hub) run() {
 				default:
 					close(client.send)
 					delete(h.clients, client)
-					j++
-					fmt.Printf("<===%d\n", j)
 				}
+			}
+		case reason := <-h.exit:
+			for client := range h.clients {
+				msg := []byte(reason.Error()) //todo
+				client.send <- msg
+				close(client.send)
+				delete(h.clients, client)
 			}
 		}
 	}
