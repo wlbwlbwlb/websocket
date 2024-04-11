@@ -15,7 +15,7 @@ func main() {
 			conn.Close()
 		}
 	}()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1; i++ {
 		conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/ws", nil)
 		if err != nil {
 			log.Fatal(err)

@@ -19,22 +19,17 @@ type Hub struct {
 	// Unregister requests from clients.
 	unregister chan *Client
 
-	exit chan error
+	exit chan []byte
 }
 
 func newHub() *Hub {
 	return &Hub{
-		exit:       make(chan error),
+		exit:       make(chan []byte),
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
 	}
-}
-
-func (h *Hub) shutdown(reason error) (e error) {
-	h.exit <- reason
-	return
 }
 
 func (h *Hub) run() {
@@ -58,8 +53,10 @@ func (h *Hub) run() {
 			}
 		case reason := <-h.exit:
 			for client := range h.clients {
-				msg := []byte(reason.Error()) //todo
-				client.send <- msg
+				select {
+				case client.send <- reason:
+				default:
+				}
 				close(client.send)
 				delete(h.clients, client)
 			}

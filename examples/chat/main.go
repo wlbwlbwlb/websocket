@@ -39,6 +39,18 @@ func main() {
 	hub := newHub()
 	go hub.run()
 
+	h = hub
+
+	//if e := mq.Init(mq.Lookupd("localhost:4161"),
+	//	mq.Nsqd("127.0.0.1:4150"),
+	//); e != nil {
+	//	log.Fatal(e)
+	//}
+	//defer func() {
+	//	mq.StopConsumers()
+	//	mq.StopProducer()
+	//}()
+
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
