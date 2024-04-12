@@ -4,6 +4,8 @@ import (
 	"github.com/nsqio/go-nsq"
 )
 
+//接受维护通知用 todo
+
 //func init() {
 //	mq.Sub("topic", "channel", nsq.HandlerFunc(HandleMessage))
 //}
