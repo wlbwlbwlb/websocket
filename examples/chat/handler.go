@@ -23,30 +23,43 @@ func handle(msg []byte, c *Client) (e error) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			//log.Error
 			fmt.Println(r, string(debug.Stack()), req)
 		}
 	}()
 
-	f, ok := handlers[req.Cmd]
-	if !ok {
-		return fmt.Errorf("handler not found, req=%+v", req)
-	}
+	f, _ := getHandler(req.Cmd)
 	e = f(req.Payload, c)
 
 	return
 }
 
+func getHandler(cmd string) (f HandlerFunc, ok bool) {
+	if f, ok = handlers[cmd]; ok {
+		return
+	}
+	return nop, true
+}
+
+var nop = func(payload []byte, c *Client) (e error) {
+	resp := struct {
+		Cmd string `json:"cmd"`
+	}{
+		Cmd: "nop",
+	}
+	msg, _ := json.Marshal(resp)
+	c.send <- msg
+	return
+}
+
 func init() {
 	handlers["ping"] = func(payload []byte, c *Client) (e error) {
-		a := struct {
+		resp := struct {
 			Cmd string `json:"cmd"`
 		}{
 			Cmd: "pong",
 		}
-		//panic("aaa")
-		resp, _ := json.Marshal(a)
-		c.send <- resp
+		msg, _ := json.Marshal(resp)
+		c.send <- msg
 		return
 	}
 }
