@@ -19,6 +19,7 @@ type Hub struct {
 	// Unregister requests from clients.
 	unregister chan *Client
 
+	// Exit requests from server shutting down. todo
 	exit chan []byte
 }
 
