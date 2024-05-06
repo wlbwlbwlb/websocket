@@ -61,7 +61,7 @@ func (c *Client) readPump() {
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error {
-		fmt.Println("pong")
+		//fmt.Println("pong")
 		c.conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
@@ -124,7 +124,7 @@ func (c *Client) writePump() {
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
-			fmt.Println("ping")
+			//fmt.Println("ping")
 		}
 	}
 }
