@@ -4,6 +4,8 @@
 
 package main
 
+import "sync"
+
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
@@ -63,4 +65,26 @@ func (h *Hub) run() {
 			}
 		}
 	}
+}
+
+type ClientSet struct {
+	clients map[*Client]bool
+	sync.RWMutex
+}
+
+func (p *ClientSet) add(client *Client) {
+	//todo
+}
+
+func (p *ClientSet) del(client *Client) {
+	//todo
+}
+
+func (p *ClientSet) each(f func(client *Client)) {
+	//todo
+}
+
+func (p *ClientSet) len() int {
+	//todo
+	return 0
 }
