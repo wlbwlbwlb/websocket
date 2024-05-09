@@ -30,7 +30,7 @@ func main() {
 	hub := newHub()
 	go hub.run()
 
-	h = hub
+	_g = hub
 
 	//if e := mq.Init(mq.Lookupd("localhost:4161"),
 	//	mq.Nsqd("127.0.0.1:4150"),

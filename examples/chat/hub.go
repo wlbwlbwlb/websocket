@@ -10,7 +10,8 @@ import "sync"
 // clients.
 type Hub struct {
 	// Registered clients.
-	clients map[*Client]bool
+	//clients map[*Client]bool
+	clients ClientSet
 
 	// Inbound messages from the clients.
 	broadcast chan []byte
@@ -31,60 +32,93 @@ func newHub() *Hub {
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		//clients:    make(map[*Client]bool),
+		clients: ClientSet{
+			members: make(map[*Client]bool),
+		},
 	}
 }
 
-func (h *Hub) run() {
+func (p *Hub) run() {
 	for {
 		select {
-		case client := <-h.register:
-			h.clients[client] = true
-		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
-				close(client.send)
-			}
-		case message := <-h.broadcast:
-			for client := range h.clients {
+		case client := <-p.register:
+			//h.clients[client] = true
+			p.clients.add(client)
+		case client := <-p.unregister:
+			//if _, ok := h.clients[client]; ok {
+			//	delete(h.clients, client)
+			//	close(client.send)
+			//}
+			p.clients.del(client)
+		case message := <-p.broadcast:
+			//for client := range h.clients {
+			//	select {
+			//	case client.send <- message:
+			//	default:
+			//		close(client.send)
+			//		delete(h.clients, client)
+			//	}
+			//}
+			p.clients.each(func(client *Client) {
 				select {
 				case client.send <- message:
 				default:
 					close(client.send)
-					delete(h.clients, client)
+					delete(p.clients.members, client)
 				}
-			}
-		case reason := <-h.exit:
-			for client := range h.clients {
+			})
+		case reason := <-p.exit:
+			//for client := range h.clients {
+			//	select {
+			//	case client.send <- reason:
+			//	default:
+			//	}
+			//	close(client.send)
+			//	delete(h.clients, client)
+			//}
+			p.clients.each(func(client *Client) {
 				select {
 				case client.send <- reason:
 				default:
 				}
 				close(client.send)
-				delete(h.clients, client)
-			}
+				delete(p.clients.members, client)
+			})
 		}
 	}
 }
 
 type ClientSet struct {
-	clients map[*Client]bool
+	members map[*Client]bool
 	sync.RWMutex
 }
 
 func (p *ClientSet) add(client *Client) {
-	//todo
+	p.Lock()
+	defer p.Unlock()
+	p.members[client] = true
 }
 
 func (p *ClientSet) del(client *Client) {
-	//todo
+	p.Lock()
+	defer p.Unlock()
+	if _, ok := p.members[client]; ok {
+		close(client.send)
+		delete(p.members, client)
+	}
 }
 
-func (p *ClientSet) each(f func(client *Client)) {
-	//todo
+func (p *ClientSet) each(f func(*Client)) {
+	p.RLock()
+	defer p.RUnlock()
+	for o, _ := range p.members {
+		f(o)
+	}
 }
 
 func (p *ClientSet) len() int {
-	//todo
-	return 0
+	p.RLock()
+	defer p.RUnlock()
+	return len(p.members)
 }
