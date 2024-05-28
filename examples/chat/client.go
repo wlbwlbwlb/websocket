@@ -23,6 +23,9 @@ const (
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
 
+	//Max number of failed ping attempts
+	maxFailCount = 3
+
 	// Maximum message size allowed from peer.
 	maxMessageSize = 512
 )
@@ -93,6 +96,7 @@ func (p *Client) writePump() {
 		ticker.Stop()
 		p.conn.Close()
 	}()
+	count := 0
 	for {
 		select {
 		case message, ok := <-p.send:
@@ -122,6 +126,11 @@ func (p *Client) writePump() {
 		case <-ticker.C:
 			p.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := p.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				count++
+			} else {
+				count = 0 //清0
+			}
+			if count > maxFailCount {
 				return
 			}
 			//fmt.Println("ping")
