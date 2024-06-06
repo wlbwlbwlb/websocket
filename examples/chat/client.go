@@ -106,12 +106,13 @@ func (p *Client) writePump() {
 				p.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
+			p.conn.WriteMessage(websocket.TextMessage, message)
 
-			w, err := p.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write(message)
+			//w, err := p.conn.NextWriter(websocket.TextMessage)
+			//if err != nil {
+			//	return
+			//}
+			//w.Write(message)
 
 			// Add queued chat messages to the current websocket message.
 			//n := len(c.send)
@@ -120,9 +121,9 @@ func (p *Client) writePump() {
 			//	w.Write(<-c.send)
 			//}
 
-			if err = w.Close(); err != nil {
-				return
-			}
+			//if err = w.Close(); err != nil {
+			//	return
+			//}
 		case <-ticker.C:
 			p.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := p.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
