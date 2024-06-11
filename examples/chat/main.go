@@ -78,7 +78,7 @@ func main() {
 		log.Fatal("Server forced to shutdown: ", err)
 	}
 
-	//杩欑鍋滄湇鏂瑰紡浼氭湁闂 todo
+	//这种停服方式会有问题 todo
 	//hub.shutdown()
 
 	log.Println("Server exiting")
