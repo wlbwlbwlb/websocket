@@ -97,12 +97,14 @@ type ClientSet struct {
 func (p *ClientSet) add(client *Client) {
 	p.Lock()
 	defer p.Unlock()
+
 	p.members[client] = true
 }
 
 func (p *ClientSet) del(client *Client) {
 	p.Lock()
 	defer p.Unlock()
+
 	if _, ok := p.members[client]; ok {
 		close(client.send)
 		delete(p.members, client)
@@ -112,6 +114,7 @@ func (p *ClientSet) del(client *Client) {
 func (p *ClientSet) each(f func(*Client)) {
 	p.RLock()
 	defer p.RUnlock()
+
 	for o, _ := range p.members {
 		f(o)
 	}
@@ -120,5 +123,6 @@ func (p *ClientSet) each(f func(*Client)) {
 func (p *ClientSet) len() int {
 	p.RLock()
 	defer p.RUnlock()
+
 	return len(p.members)
 }

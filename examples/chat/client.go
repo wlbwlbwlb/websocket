@@ -63,11 +63,7 @@ func (p *Client) readPump() {
 	}()
 	p.conn.SetReadLimit(maxMessageSize)
 	p.conn.SetReadDeadline(time.Now().Add(pongWait))
-	p.conn.SetPongHandler(func(string) error {
-		//fmt.Println("pong")
-		p.conn.SetReadDeadline(time.Now().Add(pongWait))
-		return nil
-	})
+	p.conn.SetPongHandler(func(string) error { fmt.Println("pong"); p.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := p.conn.ReadMessage()
 		if err != nil {
@@ -134,7 +130,7 @@ func (p *Client) writePump() {
 			if count > maxFailCount {
 				return
 			}
-			//fmt.Println("ping")
+			fmt.Println("ping")
 		}
 	}
 }
