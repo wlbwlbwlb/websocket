@@ -30,7 +30,7 @@ func main() {
 	hub := newHub()
 	go hub.run()
 
-	_g = hub
+	g = hub
 
 	//if e := mq.Init(mq.Lookupd("localhost:4161"),
 	//	mq.Nsqd("127.0.0.1:4150"),
@@ -49,6 +49,9 @@ func main() {
 	r := gin.Default()
 	r.GET("/", serveHome)
 	r.GET("/ws", func(c *gin.Context) {
+		if g.closed() {
+			//æ–°è¯·æ±‚ä¸è®©è¿› todo
+		}
 		serveWs(hub, c.Writer, c.Request)
 	})
 	server := &http.Server{
@@ -78,7 +81,7 @@ func main() {
 		log.Fatal("Server forced to shutdown: ", err)
 	}
 
-	//ÕâÖÖÍ£·ş·½Ê½»áÓĞÎÊÌâ todo
+	//è¿™ç§åœæœæ–¹å¼æœ‰é—®é¢˜ todo
 	//hub.shutdown()
 
 	log.Println("Server exiting")

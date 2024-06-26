@@ -17,8 +17,9 @@ var handlers = make(map[string]HandlerFunc)
 
 func handle(msg []byte, c *Client) (e error) {
 	var req Msg
+
 	if e = json.Unmarshal(msg, &req); e != nil {
-		return
+		return nop(req.Payload, c)
 	}
 
 	defer func() {

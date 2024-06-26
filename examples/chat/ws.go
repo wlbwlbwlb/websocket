@@ -1,8 +1,8 @@
 package main
 
-var _g *Hub
+var g *Hub
 
 func Close(reason []byte) (e error) {
-	_g.exit <- reason
+	g.exit <- reason
 	return
 }

@@ -4,7 +4,10 @@
 
 package main
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
@@ -22,8 +25,10 @@ type Hub struct {
 	// Unregister requests from clients.
 	unregister chan *Client
 
-	// Exit requests from server shutting down. todo
+	// Exit requests from server shutting down.
 	exit chan []byte
+
+	open atomic.Bool
 }
 
 func newHub() *Hub {
@@ -40,6 +45,7 @@ func newHub() *Hub {
 }
 
 func (p *Hub) run() {
+	p.open.Store(true)
 	for {
 		select {
 		case client := <-p.register:
@@ -77,6 +83,7 @@ func (p *Hub) run() {
 			//	close(client.send)
 			//	delete(h.clients, client)
 			//}
+			p.open.Store(false)
 			p.clients.each(func(client *Client) {
 				select {
 				case client.send <- reason:
@@ -87,6 +94,10 @@ func (p *Hub) run() {
 			})
 		}
 	}
+}
+
+func (p *Hub) closed() bool {
+	return !p.open.Load()
 }
 
 type ClientSet struct {
