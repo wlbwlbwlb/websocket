@@ -6,9 +6,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"html/template"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/wlbwlbwlb/log"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
@@ -49,20 +50,15 @@ func main() {
 	r := gin.Default()
 	r.GET("/", serveHome)
 	r.GET("/ws", func(c *gin.Context) {
-		if g.closed() {
-			//新请求不让进 todo
-		}
-		serveWs(hub, c.Writer, c.Request)
+		serveWs(g, c)
 	})
 	server := &http.Server{
-		Addr: *addr,
-		//ReadHeaderTimeout: 3 * time.Second,
+		Addr:    *addr,
 		Handler: r,
 	}
 	go func() {
-		err := server.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed { // IMPORTANT
-			log.Fatal("ListenAndServe: ", err)
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.L.Fatalf("listen: %s", err)
 		}
 	}()
 
@@ -71,20 +67,20 @@ func main() {
 
 	// Restore default behavior on the interrupt signal and notify user of shutdown.
 	stop()
-	log.Println("shutting down gracefully, press Ctrl+C again to force")
+	log.L.Info("shutting down gracefully, press Ctrl+C again to force")
 
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown: ", err)
+		log.L.Fatalf("server shutdown: %s", err)
 	}
 
 	//这种停服方式有问题 todo
 	//hub.shutdown()
 
-	log.Println("Server exiting")
+	log.L.Info("server exiting")
 }
 
 //func serveHome(w http.ResponseWriter, r *http.Request) {

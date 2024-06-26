@@ -6,11 +6,11 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/wlbwlbwlb/log"
 )
 
 const (
@@ -70,7 +70,7 @@ func (p *Client) readPump() {
 			//if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 			//	log.Printf("error: %v", err)
 			//}
-			log.Printf("error: %v", err)
+			log.L.Error(err)
 			break
 		}
 		//message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
@@ -136,13 +136,16 @@ func (p *Client) writePump() {
 }
 
 // serveWs handles websocket requests from the peer.
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
+func serveWs(h *Hub, c *gin.Context) {
+	if g.closed() {
+		//新请求不让进
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return
+	}
+	client := &Client{hub: h, conn: conn, send: make(chan []byte, 256)}
 	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
